@@ -1,0 +1,31 @@
+{
+  "name": "admerp-webui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "mock:init": "npx msw init mock/public --save"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "msw"
+    ]
+  },
+  "devDependencies": {
+    "msw": "^2.7.3",
+    "puppeteer": "^25.1.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.3.2"
+  },
+  "dependencies": {
+    "zustand": "^5.0.3"
+  },
+  "msw": {
+    "workerDirectory": [
+      "mock/public"
+    ]
+  }
+}

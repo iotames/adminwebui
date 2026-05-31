@@ -1,0 +1,1 @@
+import './amis-schema';
