@@ -2,16 +2,20 @@ import { get, menuStore } from '@admerp/shared';
 
 export class AppMenu extends HTMLElement {
   private menus: { id: string; path: string; title: string; icon?: string; children?: any[] }[] = [];
+  private boundPopstate: (() => void) | null = null;
 
   connectedCallback() {
     this.attachShadow({ mode: 'open' });
     this.render();
     this.loadMenus();
-    window.addEventListener('popstate', () => this.highlightActive());
+    this.boundPopstate = () => this.highlightActive();
+    window.addEventListener('popstate', this.boundPopstate);
   }
 
   disconnectedCallback() {
-    window.removeEventListener('popstate', () => this.highlightActive());
+    if (this.boundPopstate) {
+      window.removeEventListener('popstate', this.boundPopstate);
+    }
   }
 
   async loadMenus() {
@@ -55,14 +59,15 @@ export class AppMenu extends HTMLElement {
     shadow.querySelectorAll('.menu-link').forEach(el => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
+        const parent = el.closest('li');
+        const sub = parent?.querySelector('.sub-menu');
+        if (sub) {
+          sub.classList.toggle('open');
+          return;
+        }
         const path = (el as HTMLElement).dataset.path || '';
         this.dispatchEvent(new CustomEvent('navigate', { detail: { path }, bubbles: true, composed: true }));
         this.highlightActive(path);
-        const parent = el.closest('li');
-        if (parent) {
-          const sub = parent.querySelector('.sub-menu');
-          if (sub) sub.classList.toggle('open');
-        }
       });
     });
   }
