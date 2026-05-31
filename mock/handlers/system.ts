@@ -196,11 +196,95 @@ export const systemHandlers = [
       },
     };
 
+    const productSchema = {
+      type: 'page',
+      title: '商品管理',
+      body: {
+        type: 'crud',
+        api: '/api/product',
+        syncLocation: false,
+        defaultParams: { page: 1, perPage: 10 },
+        columns: [
+          { name: 'id', label: 'ID', width: 60 },
+          { name: 'name', label: '商品名称', searchable: { type: 'input-text', placeholder: '搜索商品名称' } },
+          { name: 'code', label: '商品编码' },
+          { name: 'category', label: '分类' },
+          { name: 'price', label: '单价', type: 'each', items: { type: 'tpl', tpl: '¥${price}' } },
+          { name: 'unit', label: '单位' },
+          { name: 'status', label: '状态', type: 'mapping', map: { 1: '<span style="color:#52c41a">● 上架</span>', 0: '<span style="color:#ff4d4f">● 下架</span>' } },
+          { name: 'created_at', label: '创建日期' },
+          {
+            type: 'operation',
+            label: '操作',
+            width: 200,
+            buttons: [
+              {
+                label: '编辑',
+                type: 'button',
+                actionType: 'dialog',
+                dialog: {
+                  title: '编辑商品',
+                  body: {
+                    type: 'form',
+                    api: 'put:/api/product/${id}',
+                    body: [
+                      { type: 'input-text', name: 'name', label: '商品名称', required: true },
+                      { type: 'input-text', name: 'code', label: '商品编码' },
+                      { type: 'input-text', name: 'category', label: '分类' },
+                      { type: 'input-number', name: 'price', label: '单价', step: 0.01, min: 0 },
+                      { type: 'input-text', name: 'unit', label: '单位' },
+                      { type: 'select', name: 'status', label: '状态', options: [{ label: '上架', value: 1 }, { label: '下架', value: 0 }] },
+                    ],
+                  },
+                },
+              },
+              {
+                label: '删除',
+                type: 'button',
+                level: 'danger',
+                actionType: 'ajax',
+                api: 'delete:/api/product/${id}',
+                confirmText: '确定要删除该商品吗？',
+              },
+            ],
+          },
+        ],
+        headerToolbar: [
+          {
+            type: 'button',
+            label: '新增商品',
+            icon: 'fa fa-plus',
+            level: 'primary',
+            actionType: 'dialog',
+            dialog: {
+              title: '新增商品',
+              body: {
+                type: 'form',
+                api: 'post:/api/product',
+                body: [
+                  { type: 'input-text', name: 'name', label: '商品名称', required: true },
+                  { type: 'input-text', name: 'code', label: '商品编码' },
+                  { type: 'input-text', name: 'category', label: '分类' },
+                  { type: 'input-number', name: 'price', label: '单价', step: 0.01, min: 0 },
+                  { type: 'input-text', name: 'unit', label: '单位' },
+                  { type: 'select', name: 'status', label: '状态', options: [{ label: '上架', value: 1 }, { label: '下架', value: 0 }] },
+                ],
+              },
+            },
+          },
+          { type: 'reload', icon: 'fa fa-refresh' },
+        ],
+      },
+    };
+
     if (name === 'dept-manage') {
       return HttpResponse.json(deptSchema);
     }
     if (name === 'user-manage') {
       return HttpResponse.json(userSchema);
+    }
+    if (name === 'product-manage') {
+      return HttpResponse.json(productSchema);
     }
     if (schemas[name!]) {
       return HttpResponse.json(schemas[name!]);
