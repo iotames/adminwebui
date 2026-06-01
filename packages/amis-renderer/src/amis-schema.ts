@@ -53,10 +53,23 @@ export class AmisSchema extends HTMLElement {
   }
 
   async embedAmis(schema: any) {
-    await this.waitForAmisSDK();
+    try {
+      const res = await fetch('/amis/sdk.js', { method: 'HEAD' });
+      const type = res.headers.get('content-type') || '';
+      if (!type.includes('javascript')) {
+        this.showAmisError(); return;
+      }
+    } catch {
+      this.showAmisError(); return;
+    }
+
+    try {
+      await this.waitForAmisSDK();
+    } catch {
+      this.showAmisError(); return;
+    }
     if (!(window as any).amisRequire) {
-      this.container.innerHTML = '<div style="color:#f5222d;padding:20px;">AMIS SDK 加载超时</div>';
-      return;
+      this.showAmisError(); return;
     }
 
     try {
@@ -68,6 +81,16 @@ export class AmisSchema extends HTMLElement {
     } catch (e: any) {
       this.container.innerHTML = `<div style="color:#f5222d;padding:20px;">AMIS 渲染失败: ${e.message}</div>`;
     }
+  }
+
+  showAmisError() {
+    this.container.innerHTML = ''
+      + '<div style="color:#f5222d;padding:20px;font-size:14px;line-height:1.8;">'
+      + '<p style="font-weight:bold;margin:0 0 8px;">AMIS SDK 加载失败</p>'
+      + '<p style="margin:0 0 4px;">缺少 AMIS 依赖，请下载 jssdk 并解压至 public/amis/ 目录：</p>'
+      + '<a href="https://github.com/baidu/amis/releases/download/6.13.0/jssdk.tar.gz" target="_blank" style="color:#1890ff;">'
+      + 'https://github.com/baidu/amis/releases/download/6.13.0/jssdk.tar.gz</a>'
+      + '</div>';
   }
 
   waitForAmisSDK(): Promise<void> {
