@@ -4,7 +4,7 @@ dist/
 
 # 验证输出截图
 verify-output/
-# amis-jssdk
+# amis-jssdk（ /nobuild/amis/ 和 /public/amis/ 文件夹，都要自己下载）
 amis/
 
 # 环境变量
