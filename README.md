@@ -117,3 +117,48 @@ scp -r nobuild/ user@server:/var/www/html/
 - **Mock**：MSW（主项目）/ 手写 fetch 拦截器（nobuild）
 - **语言**：TypeScript（主项目）/ 原生 JavaScript（nobuild）
 - **构建工具**：Vite（主项目）/ 无需构建（nobuild）
+
+## 对接真实后端 API
+
+### Vite 版本
+
+**开发环境**：默认同域 mock，无需额外设置。如需对接真实后端：
+
+方式一——在项目根目录创建 `.env` 文件：
+
+```
+VITE_BASE_API_URL=http://localhost:8081
+```
+
+方式二——Vite proxy（推荐，无跨域问题），编辑 `vite.config.ts`：
+
+```ts
+server: {
+  proxy: { '/api': { target: 'http://localhost:8081', changeOrigin: true } },
+}
+```
+
+**生产构建**：必须设置 `VITE_BASE_API_URL` 环境变量，否则 `pnpm build` 会报错退出：
+
+```bash
+VITE_BASE_API_URL=https://api.example.com pnpm build
+```
+
+原理：`packages/shared/src/api/client.ts` 通过 `import.meta.env.VITE_BASE_API_URL` 读取该变量，Vite 在构建时会将其内联到产物中。
+
+### nobuild 版本
+
+方式一——直接编辑 `nobuild/js/api-client.js` 顶部的 `BASE_URL`：
+
+```js
+const BASE_URL = '';                        // 改前：同域 mock
+const BASE_URL = 'https://api.example.com';  // 改后：真实后端
+```
+
+方式二——在 `index.html` 中通过普通 `<script>` 注入（免改源码）：
+
+```html
+<script>window.__ENV__ = { BASE_API_URL: 'https://api.example.com' };</script>
+```
+
+两种方式都需要移除 `nobuild/js/mock.js` 中的 `window.fetch = mockFetch`，否则请求被 mock 拦截。

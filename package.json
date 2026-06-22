@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node -e \"process.env.VITE_BASE_API_URL || (console.error('[错误] 生产构建必须设置环境变量: VITE_BASE_API_URL'); process.exit(1))\" && vite build",
     "preview": "vite preview",
     "mock:init": "npx msw init mock/public --save"
   },

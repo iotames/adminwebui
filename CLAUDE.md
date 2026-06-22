@@ -100,6 +100,63 @@ nobuild/
 - **API 格式：** 所有接口返回 `{ status: 0, msg: "ok", data: { ... } }`。CRUD 列表使用 `{ items, total, page, perPage }`
 - **Mock 机制：** MSW 在开发环境拦截所有 `/api/*` 请求。处理器在 `mock/handlers/`，种子数据在 `mock/data/index.ts`。开发无需后端
 
+## 如何对接真实后端 API
+
+### Vite 版本
+
+**开发环境**：默认同域 mock，无需设置。如需对接真实后端，在项目根目录创建 `.env` 文件：
+
+```bash
+VITE_BASE_API_URL=http://localhost:8081
+```
+
+或启动时直接传入：
+
+```bash
+VITE_BASE_API_URL=http://localhost:8081 pnpm dev
+```
+
+也可在 `vite.config.ts` 中添加 proxy（推荐，无跨域问题）：
+
+```ts
+export default defineConfig({
+  server: {
+    proxy: { '/api': { target: 'http://localhost:8081', changeOrigin: true } },
+  },
+});
+```
+
+**生产构建**：必须设置 `VITE_BASE_API_URL` 环境变量，否则构建会报错退出：
+
+```bash
+VITE_BASE_API_URL=https://api.example.com pnpm build
+```
+
+原理：`packages/shared/src/api/client.ts` 通过 `import.meta.env.VITE_BASE_API_URL` 读取该变量，构建时 Vite 会将其内联到产物中。
+
+### nobuild 版本
+
+直接编辑 `nobuild/js/api-client.js` 顶部的 `BASE_URL`：
+
+```js
+const BASE_URL = '';                                 // 改前：同域 mock
+const BASE_URL = 'https://api.example.com';           // 改后：对接真实后端
+```
+
+同时移除或注释 `nobuild/js/mock.js` 中的 `window.fetch = mockFetch`，否则请求会被 mock 拦截。
+
+也可在 `index.html` 的 `<script type="module">` 之前通过普通 `<script>` 注入：
+
+```html
+<script>window.__ENV__ = { BASE_API_URL: 'https://api.example.com' };</script>
+<script type="module">
+  import './js/api-client.js';
+  // ...
+</script>
+```
+
+此时 `api-client.js` 会优先读取 `window.__ENV__.BASE_API_URL`。
+
 ## 新增页面流程
 
 1. 在 `mock/data/index.ts` 中添加菜单项和路由配置
