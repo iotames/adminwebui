@@ -4,8 +4,8 @@ dist/
 
 # 验证输出截图
 verify-output/
-# amis-jssdk（ /nobuild/amis/ 和 /public/amis/ 文件夹，都要自己下载）
-amis/
+# amis-jssdk（下载后放入对应目录，/nobuild/amis/ 有独立 .gitignore）
+/public/amis/
 
 # 环境变量
 .env

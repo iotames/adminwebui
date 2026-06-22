@@ -1,0 +1,12 @@
+*
+!.gitignore
+!sdk.js
+!sdk.css
+!helper.css
+!iconfont.css
+!ie11-patch.css
+!schema.json
+!iconfont.eot
+!iconfont.woff
+!iconfont.ttf
+!iconfont.svg
