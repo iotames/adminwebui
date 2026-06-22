@@ -96,6 +96,59 @@ ES Module 需要 HTTP 协议，`file://` 双击无法运行。
 scp -r nobuild/ user@server:/var/www/html/
 ```
 
+## 生产部署（Nginx 配置）
+
+SPA 路由在刷新时必须 fallback 到 `index.html`，否则会 404。**两种版本都需要**，仅 `root` 目录不同：
+
+**`pnpm build` 的 `dist/` 部署：**
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/dist;             # Vite 构建产物目录
+
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;  # SPA fallback
+    }
+
+    # API 反向代理（可选）
+    location /api/ {
+        proxy_pass http://localhost:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+**`nobuild/` 部署：**
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /path/to/nobuild;          # 免编译静态目录
+
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;  # SPA fallback
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:8081;
+    }
+
+    # AMIS SDK 资源加长期缓存
+    location /amis/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+> **原理：** `try_files $uri $uri/ /index.html` 让 Nginx 先匹配真实文件或目录，找不到时返回 `index.html`，客户端路由（`popstate`）再解析 URL 路径。
+
 ### 修改指引
 
 - **增删页面**：修改 `nobuild/js/mock.js` 中的 `routesCfg` 和 `menus`，添加 AMIS schema
